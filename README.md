@@ -10,11 +10,11 @@ This project implements a robust system for sending emails using a RESTful API. 
     * Responsible for handling incoming HTTP requests, validating OAuth2 tokens, and queuing email sending tasks.
 2. **OAuth2 Authentication Server with league/oauth2-server**
     * Manages user authentication and issues access tokens for API access.
-3. ### RabbitMQ Queue
+3. **RabbitMQ Queue**
     * Acts as a message broker for managing the email sending tasks in an asynchronous and scalable manner.
-4. ### PostgreSQL Database
+4. **PostgreSQL Database**
     * Stores email sending history.
-5. ### Email Sending Worker
+5. **Email Sending Worker**
     * A separate service responsible for processing queued email tasks, interacting with the SMTP server, and updating the database with sending status.
 
 ## System Flow
