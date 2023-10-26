@@ -1,0 +1,57 @@
+version: '3.2'
+services:
+  rabbitmq:
+    image: rabbitmq:latest
+    hostname: rabbitmq
+    ports:
+        - "5672:5672"
+        - "15672:15672"
+    expose:
+      - 25672
+      - 15672
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    volumes:
+        - ./src:/app
+        - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+        - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+  db:
+    image: postgres:16.0-alpine
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes: 
+      - ./src/config/initdb.sql:/docker-entrypoint-initdb.d/init-db.sql
+  www:
+    build: 
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: 'www'
+    working_dir: /app
+    volumes:
+      - ./src/:/app
+    command: php -S 0.0.0.0:80  
+    ports:
+      - 80:80
+    depends_on:
+      - rabbitmq
+  publisher:
+    build: docker/publisher
+    command: "php /app/app/Config/Queue.php"
+    volumes:
+      - ./src:/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    links: 
+      - rabbitmq
+    scale: 5
+volumes:
+  db:
+    driver: local
